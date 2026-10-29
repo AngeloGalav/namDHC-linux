@@ -1,0 +1,28 @@
+Vendored MAME sources
+=====================
+
+Origin:   https://github.com/mamedev/mame
+Revision: b9a02ef99b67b7ebd3fa8cc3b58238931a1f1f64 (master, 2026-10-29, after 0.289)
+
+Only the files needed to build chdman are included:
+
+  src/tools/chdman.cpp   -> ../../chdman/chdman.cpp (unmodified)
+  src/lib/util/          MAME utility library (BSD-3-Clause)
+  src/osd/               core OSD layer for POSIX systems (BSD-3-Clause)
+  3rdparty/zlib          zlib license
+  3rdparty/lzma/C        LZMA SDK (public domain)
+  3rdparty/flac          Xiph BSD-style license (see COPYING.Xiph)
+  3rdparty/zstd          BSD / GPLv2 dual license
+  3rdparty/utf8proc      MIT license
+
+Local changes:
+
+  src/osd/modules/lib/osdlib_unix.cpp
+    When NAMDHC_NO_SDL is defined the SDL header is not included and the
+    clipboard functions use the stub implementation (chdman never uses the
+    clipboard). Search for NAMDHC_NO_SDL.
+
+To update: replace these folders with the same paths from a newer MAME
+checkout, reapply the change above, update chdman/version.cpp and rebuild.
+If new source files are needed the linker will report the missing symbols;
+add the corresponding .cpp to lib/mame/CMakeLists.txt.
