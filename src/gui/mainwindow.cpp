@@ -12,7 +12,6 @@
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
-#include <QDesktopServices>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -21,16 +20,12 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QStatusBar>
@@ -79,7 +74,6 @@ MainWindow::MainWindow(const QString &chdman, QWidget *parent)
 	setWindowTitle(NAMDHC_APP_NAME);
 	setWindowIcon(QIcon(":/namdhc.svg"));
 	setAcceptDrops(true);
-	m_net = new QNetworkAccessManager(this);
 
 	m_outputFolder = appSettings().value(keys::OutputFolder, QDir::homePath()).toString();
 
@@ -95,8 +89,6 @@ MainWindow::MainWindow(const QString &chdman, QWidget *parent)
 
 	showVerbose(m_actVerbose->isChecked());
 	selectJob();
-	if (m_actCheckUpdates->isChecked())
-		QTimer::singleShot(1500, this, [this] { checkForUpdates(false); });
 
 	log(QString(NAMDHC_APP_NAME) + " ready.");
 	log("Using chdman: " + m_chdman);
@@ -304,8 +296,6 @@ void MainWindow::buildMenus()
 		connect(a, &QAction::toggled, this, [key](bool on) { appSettings().setValue(key, yesNo(on)); });
 		return a;
 	};
-	m_actCheckUpdates = toggle("Check for updates automatically", keys::CheckForUpdatesStartup, true);
-
 	QMenu *jobs = settings->addMenu("Number of jobs to run concurrently");
 	auto *group = new QActionGroup(this);
 	const int current = qBound(1, appSettings().value(keys::JobQueueSize, DefaultJobQueueSize).toInt(), JobQueueSizeLimit);
@@ -334,11 +324,7 @@ void MainWindow::buildMenus()
 	settings->addAction("Set chdman location...", this, &MainWindow::setChdmanLocation);
 
 	QMenu *about = menuBar()->addMenu("&About");
-	about->addAction("About", this, [this] {
-		auto *dlg = new AboutDialog(this);
-		connect(dlg, &AboutDialog::checkForUpdatesRequested, this, [this] { checkForUpdates(true); });
-		dlg->open();
-	});
+	about->addAction("About", this, [this] { (new AboutDialog(this))->open(); });
 }
 
 // ------------------------------------------------------------------ job / media selection
@@ -1046,59 +1032,6 @@ void MainWindow::setChdmanLocation()
 	m_chdman = file;
 	log("Using chdman: " + file);
 	setStatus("Saved chdman location: " + file);
-}
-
-void MainWindow::checkForUpdates(bool userClick)
-{
-	const QString repo = QStringLiteral(NAMDHC_GITHUB_REPO);
-	if (repo.isEmpty()) {
-		if (userClick)
-			QMessageBox::information(this, "Updates", "Update checking is not configured in this build.");
-		return;
-	}
-	log("Checking for updates ... ");
-	QNetworkRequest req(QUrl("https://api.github.com/repos/" + repo + "/releases/latest"));
-	req.setHeader(QNetworkRequest::UserAgentHeader, QString("namDHC/") + NAMDHC_VERSION);
-	req.setRawHeader("Accept", "application/vnd.github+json");
-	QNetworkReply *reply = m_net->get(req);
-	connect(reply, &QNetworkReply::finished, this, [this, reply, userClick, repo] {
-		reply->deleteLater();
-		const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
-		auto fail = [&](const QString &why) {
-			log("Error updating: " + why);
-			if (userClick)
-				QMessageBox::critical(this, "Error getting update info", why);
-		};
-		const QString message = obj.value("message").toString();
-		if (message.contains("limit exceeded"))
-			return fail("Github API limit exceeded");
-		const QString tag = obj.value("tag_name").toString();
-		if (tag.isEmpty())
-			return fail("Update info invalid");
-		const QString latest = QString(tag).remove("namDHC", Qt::CaseInsensitive).remove('v').remove("linux", Qt::CaseInsensitive).remove('-').trimmed();
-		const int cmp = compareVersions(latest, NAMDHC_VERSION);
-		if (cmp == 0) {
-			log("No new updates found. You are running the latest version");
-			if (userClick)
-				QMessageBox::information(this, "No new updates found", "You are running the latest version");
-			return;
-		}
-		if (cmp < 0) {
-			log(QString("Your version is newer then the latest release!  Current version: v%1 - Latest version: v%2").arg(NAMDHC_VERSION, latest));
-			if (userClick)
-				QMessageBox::information(this, "Info", QString("Your version is newer then the latest release!\n\nCurrent version: v%1 - Latest version: v%2").arg(NAMDHC_VERSION, latest));
-			return;
-		}
-		log("An update was found: v" + latest);
-		const QString url = obj.value("html_url").toString("https://github.com/" + repo + "/releases/latest");
-		QString msg = QString("A new version of %1 is available!\n\nCurrent version: v%2\nLatest version: v%3").arg(NAMDHC_APP_NAME, NAMDHC_VERSION, latest);
-		const QString body = obj.value("body").toString();
-		if (!body.isEmpty())
-			msg += "\n\nChanges:\n" + QString(body).replace("-", "    -");
-		msg += "\n\nOpen release page now?";
-		if (QMessageBox::question(this, "Update available", msg) == QMessageBox::Yes)
-			QDesktopServices::openUrl(QUrl(url));
-	});
 }
 
 void MainWindow::moveEvent(QMoveEvent *e)

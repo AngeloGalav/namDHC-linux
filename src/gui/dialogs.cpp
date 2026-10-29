@@ -395,13 +395,6 @@ AboutDialog::AboutDialog(QWidget *parent)
 	lay->addWidget(head);
 	lay->addWidget(new QLabel("A Linux frontend for the MAME CHDMAN tool", this));
 
-	auto *upd = new QPushButton("Check for updates", this);
-	upd->setToolTip("Check GitHub for a newer namDHC release");
-	upd->setFixedWidth(160);
-	connect(upd, &QPushButton::clicked, this, &AboutDialog::checkForUpdatesRequested);
-	lay->addSpacing(8);
-	lay->addWidget(upd);
-
 	lay->addSpacing(12);
 	lay->addWidget(new QLabel("History", this));
 	auto *hist = new QPlainTextEdit(VersionHistory, this);

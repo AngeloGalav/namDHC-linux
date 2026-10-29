@@ -19,7 +19,6 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QMenu;
-class QNetworkAccessManager;
 class QProgressBar;
 class QPushButton;
 
@@ -34,7 +33,6 @@ public:
 	explicit MainWindow(const QString &chdman, QWidget *parent = nullptr);
 	~MainWindow() override;
 
-	void checkForUpdates(bool userClick);
 
 protected:
 	void closeEvent(QCloseEvent *e) override;
@@ -131,7 +129,6 @@ private:
 	QLabel *m_statusLabel = nullptr;
 
 	// menus / settings
-	QAction *m_actCheckUpdates = nullptr;
 	QAction *m_actVerbose = nullptr;
 	QAction *m_actConsole = nullptr;
 	QAction *m_actSound = nullptr;
@@ -141,7 +138,6 @@ private:
 
 	VerboseWindow *m_verbose = nullptr;
 	QHash<int, QPointer<JobConsole>> m_consoles;
-	QNetworkAccessManager *m_net = nullptr;
 
 	JobQueue *m_queue = nullptr;
 	QString m_outputFolder;

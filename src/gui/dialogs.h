@@ -90,9 +90,6 @@ class AboutDialog : public QDialog {
 	Q_OBJECT
 public:
 	explicit AboutDialog(QWidget *parent = nullptr);
-
-signals:
-	void checkForUpdatesRequested();
 };
 
 // Duplicate output name prompt: Rename / Skip / Rename All.

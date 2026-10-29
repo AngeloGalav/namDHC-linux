@@ -56,7 +56,4 @@ QString firstMatchingArchiveEntry(const QString &archive, const QStringList &ext
 // True if zip/7z input can be handled with the tools found on the system.
 bool canHandleArchive(const QString &ext, const QString &sevenZip);
 
-// Compare dotted versions ("2.0.1" vs "2.0"). Returns <0, 0, >0.
-int compareVersions(const QString &a, const QString &b);
-
 } // namespace namdhc

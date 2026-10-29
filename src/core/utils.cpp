@@ -330,18 +330,4 @@ QString firstMatchingArchiveEntry(const QString &archive, const QStringList &ext
 	return {};
 }
 
-int compareVersions(const QString &a, const QString &b)
-{
-	static const QRegularExpression nonDigits("[^0-9.]");
-	const QStringList pa = QString(a).remove(nonDigits).split('.', Qt::SkipEmptyParts);
-	const QStringList pb = QString(b).remove(nonDigits).split('.', Qt::SkipEmptyParts);
-	for (int i = 0; i < qMax(pa.size(), pb.size()); ++i) {
-		const int va = i < pa.size() ? pa[i].toInt() : 0;
-		const int vb = i < pb.size() ? pb[i].toInt() : 0;
-		if (va != vb)
-			return va < vb ? -1 : 1;
-	}
-	return 0;
-}
-
 } // namespace namdhc
