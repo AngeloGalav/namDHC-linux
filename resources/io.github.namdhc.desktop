@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=namDHC
+GenericName=CHD Converter
+Comment=Create, extract, verify and inspect CHD files with MAME's chdman
+Exec=namdhc-gui
+Icon=namdhc
+Terminal=false
+Categories=Utility;Archiving;Compression;Qt;
+Keywords=chd;chdman;mame;iso;cue;gdi;bin;emulation;
+StartupWMClass=namdhc-gui
